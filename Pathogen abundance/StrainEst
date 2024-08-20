@@ -1,0 +1,104 @@
+The abundance of Xanthomonas perforans was done using the reference-based strain abundance pipeline StrainEst (https://github.com/compmetagen/strainest)
+
+
+Step 1
+Load the module and nake a alignment file with the reference genome
+#!/bin/bash
+module load anaconda/2-5.2.0
+strainest mapgenomes Xp_LH3.fna Xp_91-118.fna Xp_AL33.fna Xp_AL57.fna Xp_AL65.fna Xp_ALS7E.fna Xp_GEV993.fna Xp_LH3.fna MR.fna
+
+NOTE: the initials genomes are the representative strain genomes, the second genome is the genome of species representative (SR), and the final MR file is a file containing an aligned file. This step is to first identify if you have perforans or euvesicatoria in your sample. For only perforans we use the following code.
+
+Step 2
+Now, the positions that were variable in at least one genome and their allelic variants were recorded in the SNV matrix snp.dgrp
+#!/bin/bash
+module load anaconda/2-5.2.0
+strainest map2snp Xp_LH3.fna MR.fna snp.dgrp 
+(Note: 91-118.fna is our SR)
+
+Step 3
+Now compute the number of sites where the vectors differ from each pair of sequences, followed by a complete linkage hierarchical clustering with an identity threshold of 99%. the distance matrix was calculated by
+#!/bin/bash
+module load anaconda/2-5.2.0
+strainest snpdist snp.dgrp snp_dist.txt hist.pdf 
+
+Step 4
+After that, the clustered SNV matrix was computed using;
+
+#!/bin/bash
+module load anaconda/2-5.2.0
+strainest snpclust snp.dgrp snp_dist.txt snp_clust.dgrp clusters.txt 
+
+Step 5
+Again, the representative genomes were aligned against the species representative (SR) 
+#!/bin/bash
+module load anaconda/2-5.2.0
+strainest mapgenomes Xp_LH3.fna Xp_91-118.fna Xp_AL33.fna Xp_AL57.fna Xp_AL65.fna Xp_ALS7E.fna Xp_GEV993.fna Xp_LH3.fna MR.fna
+
+Step 6
+then, the bowtie index was build
+#!/bin/bash
+ module load anaconda/2-5.2.0
+ bowtie2-build -f MA.fna MA
+
+Step 7
+then, the quality trimmed reads were aligned against the bowtie database
+#!/bin/bash
+source /opt/asn/etc/asn-bash-profiles-special/modules.sh
+module load bowtie2/2.2.9
+for fq1 in ./*_L004.paired.1.fq
+    do
+    echo "working with file $fq1"
+
+    base=$(basename $fq1 _L004.paired.1.fq)
+    echo "base name is $base"
+
+    fq1=./${base}_L004.paired.1.fq
+    fq2=./${base}_L004.paired.2.fq
+
+bowtie2 --very-fast --no-unal -x MA -1 $fq1 -2 $fq2 -S ${base}.sam
+
+done
+
+
+Step 8
+The sorted and indexed BAM file was created.
+
+#!/bin/bash
+source /opt/asn/etc/asn-bash-profiles-special/modules.sh
+module load samtools/1.11
+for f in ./*.sam
+ do
+   echo $f
+   base=$(echo ${f} | sed 's/.sam//')
+   echo $base
+
+   # Convert file from SAM to BAM format
+   samtools view -b $f > ${base}.bam
+
+   # Sort BAM file
+   samtools sort ${base}.bam -o ${base}.sorted.bam
+
+   # index the bam file
+   samtools index ${base}.sorted.bam
+
+ done
+
+Step 9
+Finally, to predict the strain abundance, run the following command in the metagenomics directory.
+#!/bin/bash
+source /opt/asn/etc/asn-bash-profiles-special/modules.sh
+module load anaconda/2-5.2.0
+for file in ./*.sorted.bam
+    do
+    echo "working with file1 $file"
+
+    base=$(basename $file .sorted.bam)
+    echo "base name is $base"
+
+strainest est snp_clust.dgrp $file ./${base}
+
+done
+
+
+ 
