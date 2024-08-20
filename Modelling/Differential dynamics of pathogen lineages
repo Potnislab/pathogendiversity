@@ -1,0 +1,79 @@
+library(dplyr)
+library(fastDummies)
+library(glmnet)
+library(DirichletReg)
+
+data <- read.csv("C:/Users/rcm0075/Box/FFAR_Diversity/Statistical Analysis (Ogonnaya)/Model.csv")
+
+data = data[,-c(1)]
+
+# Severity: 0-5 = Low; >=6 = High
+data<- data %>% mutate(severity_category = ifelse(Severity <= 5, "Low", "High"))  
+
+# Encode categorical variables using one-hot encoding (dummy variables)
+df <- dummy_cols(data, select_columns = c("Time", "Year", "Commercial.small.scale", "severity_category"))
+
+
+# Drop original categorical columns
+df <-subset(df, select=-c(Time, Year, Commercial.small.scale, severity_category, Severity)) #, SC1, SC2, SC3, SC2, SC4, SC5, SC6, SC7, SC8
+
+
+# Prepare data for Lasso regression (excluding the ordinal response "Severity)
+y_lasso <- df$shannon_diversity  
+X_lasso <- as.matrix(subset(df, select = -c(shannon_diversity, SC1:SC8)))
+
+
+# Scale the X value
+X_lasso <- scale(X_lasso)
+
+
+# Run Lasso regression for feature selection
+set.seed(13)  # For reproducibility
+lasso.model <- cv.glmnet(X_lasso,y_lasso, alpha = 0.05)  
+
+# Extract the best coefficients
+best_coef <- coef(lasso.model, s = lasso.model$lambda.min)
+
+# Identify influential predictors
+influential_predictors <- rownames(best_coef)[which(best_coef != 0)]
+influential_predictors <- influential_predictors[-1]  # Removing the intercept
+
+# Print influential predictors
+print(influential_predictors)
+
+
+Response <- data[, c("SC1", "SC2", "SC3", "SC4", "SC5", "SC6", "SC7", "SC8")]
+Y <- DR_data(Response)
+
+
+# Convert categorical variables to factors and introduce contrast 
+Time <- factor(data$Time)
+Year<-factor(data$Year)
+severity_category<-factor(data$severity_category, ordered = TRUE)
+
+#Severity <- factor(data$Severity, ordered = TRUE)   
+Commercial_small_scale <- factor(data$Commercial.small.scale,c("Small", "Commercial"), ordered = TRUE)
+
+
+contrasts(severity_category)<-"contr.treatment"
+contrasts(Commercial_small_scale)<-"contr.treatment"
+contrasts(Time)<-"contr.treatment"
+contrasts(Year)<-"contr.treatment"
+
+data$Year<-Year
+data$severity_category<-severity_category
+data$Commercial.small.scale<-Commercial_small_scale
+data$Time<-Time
+
+
+## Compositional regression
+
+After having formatted data and selected variables with Lasso, we run Dirichlet (compositional) regression:
+
+fit <- DirichReg(Y ~ Rel + Abs + Av_CLRSKY_SFC_PAR_TOT + Sd_T2M_RANGE + Sd_QV2M + Sd_RH2M + Skew_T2M + Skew_WS10M + Skew_WD10M + Kur_RH2M + Kur_ALLSKY_SFC_PAR_TOT + Kur_PS + severity_category + Commercial.small.scale + Time, data)
+
+
+The following is the output where, repeated for each cluster, we have coefficients estimates and p-values:
+
+
+summary(fit)
