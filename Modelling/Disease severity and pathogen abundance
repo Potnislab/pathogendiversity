@@ -1,0 +1,252 @@
+# Load necessary libraries
+library(glmnet)
+library(dplyr)
+library(ordinal)
+library(fastDummies)
+library(MASS)
+library(betareg)
+
+# Set and check working directory
+choose.dir()
+getwd()
+
+
+#Objective 1: To identify the climatic variables that affect the disease severity (Including shannon diversity)
+                     
+
+# Preprocessing
+
+# Import data
+data <- read.csv("Model.csv")
+df = data[, c(2:4,15:86)]  # Selecting only required predictors for this question
+
+
+# Encode categorical variables using one-hot encoding (dummy variables)
+df <- dummy_cols(df, select_columns = c("Time", "Year", "Commercial.small.scale"))
+
+
+# Drop original categorical columns
+df <- subset(df, select=-c(Time, Year, Commercial.small.scale))
+            
+
+# Prepare data for Lasso regression (excluding the ordinal response "Severity)
+y_lasso <- data$Severity  
+X_lasso <- as.matrix(subset(df, select = -Severity))
+
+
+col_missing <- colSums(is.na(X_lasso))
+print(col_missing)
+
+# Scale the X value
+X_lasso <- scale(X_lasso)
+
+
+# Run Lasso regression for feature selection
+set.seed(13)  # For reproducibility
+lasso.model <- cv.glmnet(X_lasso, y_lasso, alpha = 1)  
+
+# Extract the best coefficients
+best_coef <- coef(lasso.model, s = lasso.model$lambda.min)
+data.frame("variable" = rownames(best_coef)[which(best_coef != 0)], "coefficients" = best_coef@x)
+
+# Identify influential predictors
+influential_predictors <- rownames(best_coef)[which(best_coef != 0)]
+influential_predictors <- influential_predictors[-1]  # Removing the intercept
+
+# Print influential predictors
+print(influential_predictors)
+
+
+# Reduced dataframe with only influential predictors
+df_reduced <- df %>% dplyr::select(all_of(c("Severity", influential_predictors)))
+
+
+# Ensure severity is treated as ordinal factor
+df_reduced$Severity <- ordered(df_reduced$Severity, levels = c(0, 1, 2, 3, 4, 5, 6, 7, 8))
+
+
+# Construct formula for ordinal regression
+predictor_formula <- paste(influential_predictors, collapse=" + ")
+formula_string <- paste("Severity ~", predictor_formula)
+formula_ordinal <- as.formula(formula_string)
+
+# Fit ordinal logistic regression model
+ordinal_model <- polr(formula_ordinal, data = df_reduced, Hess = TRUE)
+
+# Display the results
+summary(ordinal_model)
+
+
+#Objective 2: To identify the climatic variables that affect the disease severity (without shannon diversity)
+df = data[, c(2:4,16:86)]  # Selecting only required predictors for this question
+
+
+# Encode categorical variables using one-hot encoding (dummy variables)
+df <- dummy_cols(df, select_columns = c("Time", "Year", "Commercial.small.scale"))
+
+
+# Drop original categorical columns
+df <- subset(df, select=-c(Time, Year))
+            
+
+# Prepare data for Lasso regression (excluding the ordinal response "Severity)
+y_lasso <- data$Severity  
+X_lasso <- as.matrix(subset(df, select = -Severity))
+
+
+col_missing <- colSums(is.na(X_lasso))
+print(col_missing)
+
+# Scale the X value
+X_lasso <- scale(X_lasso)
+
+
+# Run Lasso regression for feature selection
+set.seed(13)  # For reproducibility
+lasso.model <- cv.glmnet(X_lasso, y_lasso, alpha = 1)  
+
+# Extract the best coefficients
+best_coef <- coef(lasso.model, s = lasso.model$lambda.min)
+data.frame("variable" = rownames(best_coef)[which(best_coef != 0)], "coefficients" = best_coef@x)
+
+# Identify influential predictors
+influential_predictors <- rownames(best_coef)[which(best_coef != 0)]
+influential_predictors <- influential_predictors[-1]  # Removing the intercept
+
+# Print influential predictors
+print(influential_predictors)
+
+
+# Reduced dataframe with only influential predictors
+df_reduced <- df %>% dplyr::select(all_of(c("Severity", influential_predictors)))
+
+
+# Ensure severity is treated as ordinal factor
+df_reduced$Severity <- ordered(df_reduced$Severity, levels = c(0, 1, 2, 3, 4, 5, 6, 7, 8))
+
+
+# Construct formula for ordinal regression
+predictor_formula <- paste(influential_predictors, collapse=" + ")
+formula_string <- paste("Severity ~", predictor_formula)
+formula_ordinal <- as.formula(formula_string)
+
+# Fit ordinal logistic regression model
+ordinal_model <- polr(formula_ordinal, data = df_reduced, Hess = TRUE)
+
+# Display the results
+summary(ordinal_model)
+
+#For pathogen abundance data 2:4,15:86
+
+df = data[, c(2:3,6,15:86)]  # Selecting only required predictors for this question
+
+
+# Encode categorical variables using one-hot encoding (dummy variables)
+df <- dummy_cols(df, select_columns = c("Time", "Year", "Commercial.small.scale"))
+
+
+# Drop original categorical columns
+df <- subset(df, select=-c(Time, Year, Commercial.small.scale))
+            
+
+# Prepare data for Lasso regression (excluding the ordinal response "Severity)
+y_lasso <- data$Abs
+X_lasso <- as.matrix(subset(df, select = -Abs))
+
+
+# Scale the X value
+X_lasso <- scale(X_lasso)
+
+
+# Run Lasso regression for feature selection
+set.seed(13)  # For reproducibility
+lasso.model <- cv.glmnet(X_lasso, y_lasso, alpha = 1)  
+
+# Extract the best coefficients
+best_coef <- coef(lasso.model, s = lasso.model$lambda.min)
+data.frame("variable" = rownames(best_coef)[which(best_coef != 0)], "coefficients" = best_coef@x)
+
+# Identify influential predictors
+influential_predictors <- rownames(best_coef)[which(best_coef != 0)]
+influential_predictors <- influential_predictors[-1]  # Removing the intercept
+
+# Print influential predictors
+print(influential_predictors)
+
+
+# Reduced dataframe with only influential predictors
+df_reduced <- df %>% dplyr::select(all_of(c("Abs", influential_predictors)))
+
+# Construct formula for linear regression
+formula_string <- paste("Abs ~", predictor_formula)
+formula_linear <- as.formula(formula_string)
+
+
+# Construct formula for linear regression (not ordinal)
+predictor_formula <- paste(influential_predictors, collapse=" + ")
+formula_string <- paste("Abs~", predictor_formula)
+formula_linear <- as.formula(formula_string)
+
+# Fit beta regression model
+beta_model <- betareg(formula = formula_linear, data = df_reduced)
+
+# Display the results for beta regression
+summary(beta_model)
+
+
+#Now looking at the effect on relative abundance of Xanthomonas
+df = data[, c(2:3,5,15:86)]  # Selecting only required predictors for this question
+
+
+# Encode categorical variables using one-hot encoding (dummy variables)
+df <- dummy_cols(df, select_columns = c("Time", "Year", "Commercial.small.scale"))
+
+
+# Drop original categorical columns
+df <- subset(df, select=-c(Time, Year, Commercial.small.scale))
+            
+
+# Prepare data for Lasso regression (excluding the ordinal response "Severity)
+y_lasso <- data$Rel
+X_lasso <- as.matrix(subset(df, select = -Rel))
+
+
+# Scale the X value
+X_lasso <- scale(X_lasso)
+
+
+# Run Lasso regression for feature selection
+set.seed(13)  # For reproducibility
+lasso.model <- cv.glmnet(X_lasso, y_lasso, alpha = 1)  
+
+# Extract the best coefficients
+best_coef <- coef(lasso.model, s = lasso.model$lambda.min)
+data.frame("variable" = rownames(best_coef)[which(best_coef != 0)], "coefficients" = best_coef@x)
+
+# Identify influential predictors
+influential_predictors <- rownames(best_coef)[which(best_coef != 0)]
+influential_predictors <- influential_predictors[-1]  # Removing the intercept
+
+# Print influential predictors
+print(influential_predictors)
+
+
+# Reduced dataframe with only influential predictors
+df_reduced <- df %>% dplyr::select(all_of(c("Rel", influential_predictors)))
+
+# Construct formula for linear regression
+formula_string <- paste("Rel ~", predictor_formula)
+formula_linear <- as.formula(formula_string)
+
+
+# Construct formula for linear regression (not ordinal)
+predictor_formula <- paste(influential_predictors, collapse=" + ")
+formula_string <- paste("Rel~", predictor_formula)
+formula_linear <- as.formula(formula_string)
+
+# Fit beta regression model
+beta_model <- betareg(formula = formula_linear, data = df_reduced)
+
+# Display the results for beta regression
+summary(beta_model)
+
