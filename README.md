@@ -1,4 +1,4 @@
-# Bacterial spot of tomato: strain diversity, dynamics, and environmental drivers in the southeastern United States
+# Risk factors for bacterial spot disease epidemics
 
 This repository provides supporting information and the codes for the following manuscript.
 
@@ -14,8 +14,12 @@ Rishi Bhandari<sup>*1</sup>, Amanpreet Kaur<sup>*1</sup>, Ivory Russell<sup>1</s
 <sup>3</sup> 
 
 
+<sup>*</sup>These authors contributed equally to this work. 
 
-The manuscriptThis study is available as a preprint at https: 
+Corresponding Author: Neha Potnis, nzp0024@auburn.edu
+
+
+This study is available as a preprint at https: 
 
 
 ## Abstract
