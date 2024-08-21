@@ -2,7 +2,7 @@
 
 This repository provides supporting information and the codes for the following manuscript.
 
-### *Climatic fluctuations modulate eco-evolutionary processes associated with pathogen dynamics and continue to fuel bacterial spot epidemics in tomato
+## Climatic fluctuations modulate eco-evolutionary processes associated with pathogen dynamics and continue to fuel bacterial spot epidemics in tomato
 
 Rishi Bhandari<sup>*1</sup>, Amanpreet Kaur<sup>*1</sup>, Ivory Russell<sup>1</sup>, Ogonnaya Michael Romanus<sup>1</sup>, Destiny Brokaw<sup>1</sup>, Anthony Keinath<sup>2</sup>, Zachary Snipes<sup>3</sup>, Philip Rollins<sup>4</sup>, Nettie Baugher<sup>5</sup>, Inga Meadows<sup>6</sup>, Bhabesh Dutta<sup>7</sup>, Ed Sikora<sup>1</sup>, Roberto Molinari<sup>1</sup>, Samuel Soubeyrand<sup></sup>, and Neha Potnis<sup>1</sup>
 
