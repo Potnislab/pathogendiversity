@@ -8,12 +8,19 @@ Rishi Bhandari<sup>*1</sup>, Amanpreet Kaur<sup>*1</sup>, Ivory Russell<sup>1</s
 
 
 <sup>1</sup> Department of Entomology and Plant Pathology, Auburn University, Auburn, AL 36849, USA
+
 <sup>2</sup>  Department of Mathematics and Statistics, Auburn University, Auburn, AL 36849, USA
+
 <sup>3</sup> Department of Plant and Environmental Sciences, Clemson University, Charleston, SC 29414, USA
+
 <sup>4</sup> Clemson Cooperative Extension Service, Clemson University, Charleston, SC, 29401, USA
+
 <sup>5</sup> NC State Cooperative Extension, Mountain Research Station, North Carolina State University, Waynesville, NC 28786, USA
+
 <sup>6</sup> UGA Cooperative Extension, Tift County Extension, University of Georgia, Tifton, GA, 31793, USA
+
 <sup>7</sup> Department of Plant Pathology, University of Georgia, Tifton CAES Campus, Tifton, GA, 31793, USA
+
 <sup>8</sup>  INRAE, BioSP, 84914, Avignon, France
 
 
